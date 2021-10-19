@@ -13,17 +13,16 @@ Resources:
   VprofileSG:
       Type: AWS::EC2::SecurityGroup
       Properties:
-        GroupName: VprofileSGGroup
         GroupDescription: Allow SSH and httpd
         SecurityGroupIngress:
-          - InProtocol: tcp 
+          - IpProtocol: TCP 
             FromPort: 80
             ToPort: 80
-            CidrIP: 0.0.0.0/0
-          - InProtocol: tcp 
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: TCP 
             FromPort: 22
             ToPort: 22
-            CidrIP: 0.0.0.0/0
+            CidrIp: 0.0.0.0/0
         Tags:
           - Key: "Name"
             Value: "VprofileSGTag"
