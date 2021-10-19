@@ -1,0 +1,29 @@
+Resources:
+  MyInstance:
+      Type: AWS::EC2::Instance
+      Properties:
+        ImageId: ami-02e136e904f3da870
+        InstanceType: t2.micro
+        Tags:
+          - Key: "Name"
+            Value: "exmaple"
+        SecurityGroups:
+          - !Ref VprofileSG
+
+  VprofileSG:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupName: VprofileSGGroup
+        GroupDescription: Allow SSH and httpd
+        SecurityGroupIngress:
+          - InProtocol: tcp 
+            FromPort: 80
+            ToPort: 80
+            CidrIP: 0.0.0.0/0
+          - InProtocol: tcp 
+            FromPort: 22
+            ToPort: 22
+            CidrIP: 0.0.0.0/0
+        Tags:
+          - Key: "Name"
+            Value: "VprofileSGTag"
