@@ -1,0 +1,18 @@
+Parameters:
+  InstanceType:
+      Default: /dev/ec2/instanceType
+      Description: TCP/IP port for the database
+      Type: AWS::SSM::Parameter::Value<String>
+
+  ImageID:
+      Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+      Description: TCP/IP port for the database
+      Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+
+
+Resources:
+  MyInstance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: !Ref ImageID
+      InstanceType: !Ref InstanceType
