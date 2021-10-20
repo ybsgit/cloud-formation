@@ -10,7 +10,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties: 
       ImageId: !Ref ImageID
-      InstanceType: "t2-micro"
+      InstanceType: "t2.micro"
     DependsOn:
       MyS3Bucket
 
