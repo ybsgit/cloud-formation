@@ -1,0 +1,26 @@
+Outputs:
+  MySSHSecurityGroup:
+    Description: Information about the value
+    Value: !Ref MySecurityGroup
+    Export:
+      Name: SSHSecurityGroup
+
+Resources:
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: SSH 
+      GroupName: SSH security group 
+      SecurityGroupIngress: 
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 10.0.0.0/16
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 10.1.0.0/16
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0

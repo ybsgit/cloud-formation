@@ -1,0 +1,39 @@
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues:
+      - dev
+      - prod
+
+#ENV with prod and dev
+
+Conditions:
+#if env is prod
+  IsProduction: !Equals 
+    - !Ref Environment
+    - prod
+
+Resources:
+#EC2
+  MyEc2:
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: ami-041d6256ed0f2061c
+      InstanceType: t2.micro
+
+
+  MountPoint:
+    Type: AWS::EC2::VolumeAttachment
+    Condition: IsProduction
+    Properties: 
+      Device: /dev/sdb
+      InstanceId: !Ref MyEc2
+      VolumeId: !Ref MyVolume
+
+  MyVolume:
+    Type: AWS::EC2::Volume
+    Condition: IsProduction
+    Properties: 
+      AvailabilityZone: !GetAtt MyEc2.AvailabilityZone
+      Size: 100
+
