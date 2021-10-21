@@ -1,0 +1,91 @@
+Outputs:
+ PrintSomeInfo:
+  Value: !GetAtt MyInstance.PublicDnsName
+Parameters:
+  NameofService:
+    Type: String 
+    Description: Enter the type of string
+  InstanceTypeParameter:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - m1.small
+      - m1.large
+    Description: Enter t2.micro, m1.small, or m1.large. Default is t2.micro.
+ 
+  KeyName:
+    Description: Select a key pair
+    Type: AWS::EC2::KeyPair::KeyName
+
+Mappings: 
+  AMIRegionMap: 
+    us-east-1: 
+      "AMI": "ami-02e136e904f3da870"
+    us-east-2: 
+      "AMI": "ami-074cce78125f09d61"
+    eu-west-1: 
+      "AMI": "ami-03ab7423a204da002"
+
+Resources:
+  MyInstance:
+      Type: AWS::EC2::Instance
+      Metadata: 
+        AWS::CloudFormation::Init: 
+                  
+          config: 
+            packages: 
+              yum:
+                php: []
+                httpd: []
+                wget: []
+                unzip: [] 
+                git: []
+            files:
+              /var/www/html/index.html:
+               content: !Sub |
+                <html>
+                <body>
+                <h1> Welcome to cloudformation </h1>
+                </body>
+                </html>          
+            services: 
+              sysvinit:
+                httpd:
+                  enabled: true 
+                  ensureRunning: true 
+      Properties:
+        UserData:
+          'Fn::Base64':
+            !Sub |
+              #!/bin/bash -xe
+              /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource MyInstance --region ${AWS::Region}
+              /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource MyInstance --region ${AWS::Region}           
+        ImageId: !FindInMap
+          - AMIRegionMap
+          - !Ref AWS::Region
+          - AMI
+        InstanceType: !Ref InstanceTypeParameter
+        Tags:
+          - Key: "Name"
+            Value: !Ref NameofService
+        SecurityGroups:
+          - !Ref VprofileSG
+        KeyName: !Ref KeyName
+
+  VprofileSG:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Allow SSH and httpd
+        SecurityGroupIngress:
+          - IpProtocol: TCP 
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: TCP 
+            FromPort: 22
+            ToPort: 22
+            CidrIp: 0.0.0.0/0
+        Tags:
+          - Key: "Name"
+            Value: "VprofileSGTag"
