@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  DevEC2Instance: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: "ami-04902260ca3d33422"
+      InstanceType: t2.small
+      KeyName: cfn-key-1
+      SecurityGroups:
+        - default
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+         GroupDescription: Allow http to client host
+         VpcId: vpc-3e27fa43
+         SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 8080
+            ToPort: 8080
+            CidrIp: 0.0.0.0/0
+         SecurityGroupEgress:
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
