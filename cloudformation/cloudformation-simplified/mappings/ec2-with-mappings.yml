@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Mappings: 
+  RegionMap: 
+    us-east-1:
+      HVM64: ami-0ff8a91507f77f867
+      HVMG2: ami-0a584ac55a7631c0c
+    us-west-1:
+      HVM64: ami-0bdb828fd58c52235
+      HVMG2: ami-066ee5fd4a9ef77f1
+
+  Env:
+    dev: 
+      instanceType: t2.micro
+    prod: 
+      instanceType: t2.small
+
+Parameters: 
+  Environments:
+    Description: Enter env dev or prod
+    Type: String 
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+
+Resources: 
+  myEC2Instance: 
+    Type: "AWS::EC2::Instance"
+    Properties: 
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", HVM64]
+      InstanceType: !FindInMap [Env, !Ref Environments, instanceType]

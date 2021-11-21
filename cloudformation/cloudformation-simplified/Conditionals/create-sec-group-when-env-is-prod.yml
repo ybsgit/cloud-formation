@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  Environment:
+    Description: Choose environment dev or prod
+    Type: String
+    AllowedValues: ['dev','prod']
+
+Conditions:
+  CreateSecurityGroup: !Equals [!Ref Environment, 'prod' ]
+
+
+Resources: 
+  myEC2Instance: 
+    Type: "AWS::EC2::Instance"
+    Properties: 
+      ImageId: ami-0ff8a91507f77f867
+      InstanceType: t2.micro
+      SecurityGroupIds: !If [CreateSecurityGroup, [!Ref MySecGroup],[!Ref AWS::NoValue]]
+
+  
+  MySecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: CreateSecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0

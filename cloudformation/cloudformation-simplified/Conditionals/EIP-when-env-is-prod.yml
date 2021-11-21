@@ -1,0 +1,25 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  Environment:
+    Description: Choose environment dev or prod
+    Type: String
+    AllowedValues: ['dev','prod']
+
+Conditions:
+  CreateEIP: !Equals [!Ref Environment, 'prod' ]
+
+
+Resources: 
+  myEC2Instance: 
+    Type: "AWS::EC2::Instance"
+    Properties: 
+      ImageId: ami-0ff8a91507f77f867
+      InstanceType: t2.micro
+
+  
+  MyEIP:
+    Type: AWS::EC2::EIP
+    Condition: CreateEIP
+    Properties:
+      InstanceId: !Ref myEC2Instance

@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Mappings:
+
+  MyKey:
+    US: 
+      key: cfn-key-1
+    Mumbai: 
+      key: cfn-key
+
+Parameters:
+  Environment:
+    Description: Choose environment dev or prod
+    Type: String
+    AllowedValues: ['dev','prod']
+  
+Conditions:
+  CreateProdSecurityGroup: !Equals [!Ref Environment, 'prod' ]
+  CreateDevSecurityGroup: !Not [Condition: CreateProdSecurityGroup]
+  RegionUS: !Equals [!Ref AWS::Region,'us-east-1']
+  RegionMumbai: !Equals [!Ref AWS::Region,'ap-south-1']
+  IfRegionUseKeyName: !Or [!Equals [!Ref 'AWS::Region', 'us-east-1' ],!Equals [!Ref 'AWS::Region', 'us-east-2' ]]
+
+Resources: 
+  myEC2Instance: 
+    Type: "AWS::EC2::Instance"
+    Properties: 
+      ImageId: ami-0ff8a91507f77f867
+      InstanceType: t2.micro
+      SecurityGroupIds: !If [CreateProdSecurityGroup, [!Ref MyProdSecGroup],[!Ref MyDevSecGroup]]
+      KeyName: !If [RegionUS, !FindInMap [MyKey,US,key],!FindInMap [MyKey,Mumbai,key]]
+
+  MyProdSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: CreateProdSecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+
+  MyDevSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: CreateDevSecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
