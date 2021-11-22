@@ -24,6 +24,9 @@ Parameters:
       - dev
       - prod
 
+Conditions:
+  ProdEnv: !Equals [!Ref Environments, prod]
+
 Outputs:
   EC2IntanceId:
     Description: The ID of the EC2
@@ -41,12 +44,10 @@ Outputs:
       Name: !Sub "${AWS::StackName}-AZ"
   MyDevSG:
     Value: !GetAtt MyProdSecGroup.GroupId
+    Condition: ProdEnv
     Export: 
       Name: MySGExport
-  MyDevSG0:
-    Value: !Ref MyProdSecGroup
-    Export: 
-      Name: MySGExport0
+
 
 Resources: 
   myEC2Instance: 
@@ -54,11 +55,12 @@ Resources:
     Properties: 
       ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", HVM64]
       InstanceType: !FindInMap [Env, !Ref Environments, instanceType]
-      SecurityGroupIds: 
-        - !Ref MyProdSecGroup
+      SecurityGroupIds: !If [ProdEnv,[!Ref MyProdSecGroup],[!Ref AWS::NoValue]]
+      
 
   MyProdSecGroup:
     Type: AWS::EC2::SecurityGroup
+    Condition: ProdEnv
     Properties:
       GroupDescription: Allow http to client host
       SecurityGroupIngress:
