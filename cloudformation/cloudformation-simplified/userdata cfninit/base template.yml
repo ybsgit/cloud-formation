@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  MyKey:
+    Description: Amazon EC2 Key Pair 
+    Type: "AWS::EC2::KeyPair::KeyName"
+
+Resources:
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+        GroupDescription: Allow http to client host
+        SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  MyEC2Instance: 
+    Type: AWS::EC2::Instance
+    Metadata:
+      'AWS::CloudFormation::Init':
+          config:
+            packages:
+              yum:
+                java-openjdk11: []
+                tomcat8: []
+            groups:
+              groupone: {}
+              grouptwo: {}
+                gid: "501"
+            users:
+              user1:
+                groups:
+                  - groupone
+                  - grouptwo
+                uid: 555
+                homeDir: /tmp
+            sources:
+            files:
+            commands:
+            services:
+
+
+    Properties: 
+      ImageId: "ami-04902260ca3d33422"
+      KeyName: !Ref MyKey
+      SecurityGroups: 
+        - !Ref InstanceSecurityGroup
