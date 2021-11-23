@@ -57,7 +57,7 @@ Resources:
       InstanceType: !FindInMap [Env, !Ref Environments, instanceType]
       SecurityGroupIds: !If [ProdEnv,[!Ref MyProdSecGroup],[!Ref AWS::NoValue]]
       UserData:
-        - !Base64 | 
+        !Base64 | 
           #!/bin/bash
           yum update -y
           yum install httpd -y
