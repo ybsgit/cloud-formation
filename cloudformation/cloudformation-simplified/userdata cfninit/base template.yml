@@ -1,49 +1,96 @@
-AWSTemplateFormatVersion: "2010-09-09"
-
+AWSTemplateFormatVersion: 2010-09-09
 Parameters:
   MyKey:
-    Description: Amazon EC2 Key Pair 
-    Type: "AWS::EC2::KeyPair::KeyName"
-
+    Description: Amazon EC2 Key Pair
+    Type: 'AWS::EC2::KeyPair::KeyName'
 Resources:
   InstanceSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
+    Type: 'AWS::EC2::SecurityGroup'
     Properties:
-        GroupDescription: Allow http to client host
-        SecurityGroupIngress:
+      GroupDescription: Allow http to client host
+      SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
-
-  MyEC2Instance: 
-    Type: AWS::EC2::Instance
+  MyEC2Instance:
+    Type: 'AWS::EC2::Instance'
     Metadata:
       'AWS::CloudFormation::Init':
-          config:
-            packages:
-              yum:
-                java-openjdk11: []
-                tomcat8: []
-            groups:
-              groupone: {}
-              grouptwo: {}
-                gid: "501"
-            users:
-              user1:
-                groups:
-                  - groupone
-                  - grouptwo
-                uid: 555
-                homeDir: /tmp
-            sources:
-            files:
-            commands:
-            services:
+        config:
+          packages:
+            yum:
+              java-openjdk11: []
+              tomcat8: []
+          groups:
+            groupone: {}
+            grouptwo: {}
+          users:
+            user1:
+              groups:
+                - groupone
+                - grouptwo
+              uid: 555
+              homeDir: /tmp
+          sources:
+            /tmp: 'https://s3.us-east-2.amazonaws.com/cfn-init-0189/cfn/demo1.zip'
+          files:
+            /etc/cfn/cfn-hup.conf:
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+              mode: '000400'
+              owner: root
+              group: root
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub >
+                [cfn-auto-reloader-hook]
 
+                triggers=post.update
 
-    Properties: 
-      ImageId: "ami-04902260ca3d33422"
+                path=Resources.MyVMInstance.Metadata.AWS::CloudFormation::Init
+
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName}
+                --resource MyVMInstance --region ${AWS::Region}
+              mode: '000400'
+              owner: root
+              group: root
+          commands:
+            test1:
+              command: chmod 755 demo.war
+              cwd: /tmp
+            test2:
+              command: sudo yum -y erase java-1.7.0-openjdk.x86_64
+              cwd: '~'
+            test3:
+              command: rm -rf demo*
+              cwd: /var/lib/tomcat8/webapps
+            test4:
+              command: cp demo.war /var/lib/tomcat8/webapps
+              cwd: /tmp
+          services:
+            sysvinit:
+              tomcat8:
+                enabled: 'true'
+                ensureRunning: 'true'
+    Properties:
+      ImageId: ami-04902260ca3d33422
       KeyName: !Ref MyKey
-      SecurityGroups: 
+      SecurityGroups:
         - !Ref InstanceSecurityGroup
+      UserData:
+       "Fn::Base64": 
+         !Sub |
+          #!/bin/bash
+          yum update -y aws-cfn-bootstrap
+          /opt/aws/bin/cfn-init -s ${AWS::StackId} -r MyEC2Instance --region
+          ${AWS::Region} || error_exit 'Failed to run cfn-init'
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource
+          MyEC2Instance --region ${AWS::Region}
+
+          /opt/aws/bin/cfn-hup || error_exit 'Failed to start cfn-hup'
+Outputs:
+  AppURL:
+    Description: Application URL to access
+    Value: !Sub 'http://${MyEC2Instance.PublicDnsName}:8080/demo/hello'
